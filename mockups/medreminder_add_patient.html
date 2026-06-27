@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - add patient</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position:relative;}
+.status{background:#0b3a52;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0b3a52;padding:12px 16px 16px;}
+.topbar-row{display:flex;align-items:center;gap:10px;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-sub{color:#a8c8d8;font-size:11px;font-weight:500;margin-bottom:1px;}
+.topbar-title{color:#fff;font-size:17px;font-weight:700;}
+
+.scroll-area{padding:16px 16px 90px;overflow-y:auto;max-height:480px;}
+
+.avatar-upload{width:64px;height:64px;border-radius:50%;background:#eaf2ff;border:1.5px dashed #9ab5c0;display:flex;align-items:center;justify-content:center;margin:6px auto 18px;cursor:pointer;color:#7090a0;font-size:22px;}
+
+.field-label{font-size:11px;font-weight:700;color:#5a7f90;margin-bottom:7px;margin-top:16px;letter-spacing:0.02em;}
+.field-label:first-child{margin-top:0;}
+.text-input{width:100%;border:1px solid #dde8f0;border-radius:10px;padding:11px 13px;font-size:14px;color:#0b2a38;background:#fff;}
+.text-input::placeholder{color:#aebfc8;}
+.icon-input-wrap{position:relative;}
+.icon-input-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9ab5c0;font-size:15px;}
+.icon-input-wrap .text-input{padding-left:36px;}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.phone-input-row{display:flex;gap:8px;}
+.country-code{border:1px solid #dde8f0;border-radius:10px;padding:11px 10px;background:#fff;font-size:13px;font-weight:600;color:#0b2a38;display:flex;align-items:center;gap:4px;flex-shrink:0;}
+
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;}
+.chip{border:1px solid #c8dde8;background:#fff;border-radius:20px;padding:7px 13px;font-size:12px;font-weight:600;color:#5a7f90;cursor:pointer;}
+.chip.active{background:#0b3a52;border-color:#0b3a52;color:#fff;}
+
+.condition-tag{display:inline-flex;align-items:center;gap:6px;background:#eaf2ff;color:#0b3a52;border-radius:20px;padding:6px 10px 6px 12px;font-size:12px;font-weight:600;margin:0 6px 6px 0;}
+.condition-tag button{background:none;border:none;color:#5a7f90;font-size:13px;cursor:pointer;padding:0;display:flex;}
+.add-condition-row{display:flex;gap:8px;margin-top:8px;}
+.add-condition-row .text-input{flex:1;}
+.add-condition-btn{background:#eaf2ff;color:#0b3a52;border:none;border-radius:10px;width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;}
+
+.info-banner{background:#eef6fa;border:1px solid #c8dde8;border-radius:11px;padding:10px 12px;margin-top:18px;display:flex;gap:8px;align-items:flex-start;}
+.info-banner i{color:#0d6e8e;font-size:15px;margin-top:1px;flex-shrink:0;}
+.info-banner span{font-size:11.5px;color:#345a6b;line-height:1.5;}
+
+.save-bar{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #dde8f0;padding:12px 16px 14px;}
+.save-btn{width:100%;background:#0b3a52;color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.save-btn:disabled{background:#b8c8d2;cursor:not-allowed;}
+
+.toast{position:absolute;top:90px;left:16px;right:16px;background:#0b2a38;color:#fff;border-radius:11px;padding:12px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(-10px);transition:all .25s;z-index:40;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast i{color:#7fffa0;font-size:16px;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="back-btn" id="back-btn" aria-label="Back to dashboard"><i class="ti ti-arrow-left"></i></button>
+      <div class="topbar-info">
+        <div class="topbar-sub">Doctor Dashboard</div>
+        <div class="topbar-title">Add New Patient</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <div class="avatar-upload"><i class="ti ti-camera" aria-hidden="true"></i></div>
+
+    <div class="field-label">Full name</div>
+    <div class="icon-input-wrap">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <input class="text-input" id="p-name" placeholder="e.g. Rajesh Kumar" />
+    </div>
+
+    <div class="field-label">Mobile number</div>
+    <div class="phone-input-row">
+      <div class="country-code"><i class="ti ti-flag" style="font-size:12px"></i> +91</div>
+      <input class="text-input" id="p-phone" type="tel" placeholder="98765 43210" maxlength="10" />
+    </div>
+
+    <div class="field-label">Age</div>
+    <div class="row-2">
+      <input class="text-input" id="p-age" type="number" placeholder="e.g. 68" />
+      <div class="chip-row" id="gender-row" style="align-items:center;">
+        <div class="chip" data-val="Male">Male</div>
+        <div class="chip" data-val="Female">Female</div>
+      </div>
+    </div>
+
+    <div class="field-label">Medical conditions</div>
+    <div id="condition-tags"></div>
+    <div class="add-condition-row">
+      <input class="text-input" id="condition-input" placeholder="e.g. Diabetes, Hypertension" />
+      <button class="add-condition-btn" id="add-condition-btn" aria-label="Add condition"><i class="ti ti-plus"></i></button>
+    </div>
+
+    <div class="info-banner">
+      <i class="ti ti-info-circle" aria-hidden="true"></i>
+      <span>An invite link will be sent to this number so the patient can download the app and connect to your account.</span>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">
+    <i class="ti ti-check" aria-hidden="true"></i>
+    <span>Patient profile created</span>
+  </div>
+
+  <div class="save-bar">
+    <button class="save-btn" id="save-btn" disabled>
+      <i class="ti ti-user-plus" style="font-size:15px"></i> Create Patient Profile
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  let selectedGender = null;
+  let conditions = [];
+
+  const nameInput = document.getElementById('p-name');
+  const phoneInput = document.getElementById('p-phone');
+  const ageInput = document.getElementById('p-age');
+  const saveBtn = document.getElementById('save-btn');
+  const conditionInput = document.getElementById('condition-input');
+  const tagsWrap = document.getElementById('condition-tags');
+
+  function checkFormValid(){
+    const valid = nameInput.value.trim() && phoneInput.value.length === 10 && ageInput.value.trim() && selectedGender;
+    saveBtn.disabled = !valid;
+  }
+  nameInput.addEventListener('input', checkFormValid);
+  ageInput.addEventListener('input', checkFormValid);
+  phoneInput.addEventListener('input', ()=>{
+    phoneInput.value = phoneInput.value.replace(/\D/g,'');
+    checkFormValid();
+  });
+
+  document.querySelectorAll('#gender-row .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#gender-row .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedGender = chip.dataset.val;
+      checkFormValid();
+    });
+  });
+
+  function renderTags(){
+    tagsWrap.innerHTML = conditions.map((c, idx)=>
+      '<span class="condition-tag">' + c + '<button data-idx="'+idx+'" aria-label="Remove"><i class="ti ti-x" style="font-size:12px"></i></button></span>'
+    ).join('');
+    tagsWrap.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        conditions.splice(Number(btn.dataset.idx), 1);
+        renderTags();
+      });
+    });
+  }
+
+  function addCondition(){
+    const val = conditionInput.value.trim();
+    if(!val) return;
+    conditions.push(val);
+    conditionInput.value = '';
+    renderTags();
+  }
+
+  document.getElementById('add-condition-btn').addEventListener('click', addCondition);
+  conditionInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); addCondition(); }
+  });
+
+  document.getElementById('back-btn').addEventListener('click', ()=>{
+    sendPrompt('Take me back to the Doctor Dashboard');
+  });
+
+  saveBtn.addEventListener('click', ()=>{
+    if(saveBtn.disabled) return;
+    const toast = document.getElementById('toast');
+    const name = nameInput.value.trim();
+    toast.querySelector('span').textContent = name + "'s profile created";
+    toast.classList.add('show');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="ti ti-check" style="font-size:15px"></i> Created!';
+    setTimeout(()=>{
+      sendPrompt('Take me to the Prescribing flow for this new patient');
+    }, 1100);
+  });
+})();
+</script>
+</body>
+</html>

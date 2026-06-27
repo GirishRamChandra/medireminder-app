@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - doctor prescribe</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position:relative;}
+.status{background:#0b3a52;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0b3a52;padding:12px 16px 14px;}
+.topbar-row{display:flex;align-items:center;gap:10px;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-sub{color:#a8c8d8;font-size:11px;font-weight:500;margin-bottom:1px;}
+.topbar-title{color:#fff;font-size:17px;font-weight:700;}
+.step-row{display:flex;gap:5px;margin-top:12px;}
+.step-seg{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,0.18);}
+.step-seg.done{background:#4dd0e1;}
+.step-seg.active{background:#fff;}
+.step-label{color:#a8c8d8;font-size:10px;font-weight:600;margin-top:6px;letter-spacing:0.03em;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+.scroll-area{padding:13px 13px 80px;overflow-y:auto;max-height:480px;}
+.section-label{font-size:10px;font-weight:700;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:9px;}
+
+.search-bar{background:#fff;border:1px solid #dde8f0;border-radius:10px;padding:9px 12px;width:100%;font-size:13px;color:#5a7f90;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.search-bar i{color:#9ab5c0;font-size:16px;}
+
+.patient-card{background:#fff;border-radius:13px;padding:12px 13px;margin-bottom:9px;border:0.5px solid #dde8f0;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .12s;}
+.patient-card:hover{border-color:#0d6e8e;}
+.patient-card.selected{border:1.5px solid #0b3a52;background:#eef6fa;}
+.p-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;background:#e6f4f9;color:#0d6e8e;}
+.p-info{flex:1;}
+.p-name{font-size:14px;font-weight:700;color:#0b2a38;}
+.p-meta{font-size:11px;color:#7090a0;margin-top:1px;}
+.p-chevron{color:#c2d4dc;font-size:16px;}
+
+.patient-summary{background:#0d4f6e;border-radius:13px;padding:12px 13px;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.patient-summary .p-avatar{background:rgba(255,255,255,0.18);color:#fff;}
+.patient-summary .p-name{color:#fff;}
+.patient-summary .p-meta{color:#a8d8ea;}
+.change-link{font-size:11px;color:#cceeff;font-weight:600;background:rgba(255,255,255,0.12);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;flex-shrink:0;}
+
+.med-added-card{background:#fff;border-radius:13px;padding:12px 13px;margin-bottom:9px;border:0.5px solid #dde8f0;}
+.med-added-top{display:flex;align-items:center;gap:9px;}
+.med-icon{width:32px;height:32px;border-radius:9px;background:#e6f4f9;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0d6e8e;flex-shrink:0;}
+.med-added-name{font-size:13px;font-weight:700;color:#0b2a38;flex:1;}
+.remove-btn{background:none;border:none;color:#c62828;font-size:16px;cursor:pointer;padding:2px;}
+.med-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;padding-left:41px;}
+.pill{font-size:10px;border-radius:20px;padding:3px 9px;font-weight:500;}
+.pill-blue{background:#e3f0f8;color:#0c5070;}
+.pill-amber{background:#fff3e0;color:#7a4d00;}
+.pill-green{background:#e8f5e9;color:#1b5e20;}
+.pill-red{background:#fdecea;color:#b71c1c;}
+
+.empty-meds{text-align:center;padding:22px 10px;color:#9ab5c0;font-size:12px;}
+.empty-meds i{font-size:26px;color:#c2d4dc;display:block;margin-bottom:8px;}
+
+.form-card{background:#fff;border-radius:13px;padding:14px;border:0.5px solid #dde8f0;margin-top:4px;}
+.field-label{font-size:11px;font-weight:700;color:#5a7f90;margin-bottom:6px;margin-top:12px;}
+.field-label:first-child{margin-top:0;}
+.text-input{width:100%;border:1px solid #dde8f0;border-radius:10px;padding:10px 12px;font-size:13px;color:#0b2a38;background:#f9fbfc;}
+.text-input::placeholder{color:#aebfc8;}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{border:1px solid #c8dde8;background:#fff;border-radius:20px;padding:7px 13px;font-size:12px;font-weight:600;color:#5a7f90;cursor:pointer;}
+.chip.active{background:#0b3a52;border-color:#0b3a52;color:#fff;}
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.time-input{display:flex;align-items:center;gap:8px;border:1px solid #dde8f0;border-radius:10px;padding:9px 11px;background:#f9fbfc;}
+.time-input i{color:#0d6e8e;font-size:14px;}
+.time-input input{border:none;background:transparent;font-size:12px;color:#0b2a38;width:100%;}
+
+.add-med-btn{width:100%;background:#fff;color:#0b3a52;border:1.5px dashed #9ab5c0;border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:14px;}
+.primary-btn{width:100%;background:#0b3a52;color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px;}
+.primary-btn:disabled{background:#b8c8d2;cursor:not-allowed;}
+.secondary-btn{width:100%;background:#fff;color:#0b3a52;border:1.5px solid #0b3a52;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;}
+
+.review-banner{background:#eef6fa;border:1px solid #c8dde8;border-radius:11px;padding:10px 12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start;}
+.review-banner i{color:#0d6e8e;font-size:16px;margin-top:1px;flex-shrink:0;}
+.review-banner span{font-size:11.5px;color:#345a6b;line-height:1.5;}
+
+/* magic moment overlay */
+.magic-overlay{position:absolute;inset:0;background:#0b3a52;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 28px;text-align:center;opacity:0;visibility:hidden;transition:opacity .3s;z-index:50;}
+.magic-overlay.show{opacity:1;visibility:visible;}
+.check-circle{width:78px;height:78px;border-radius:50%;background:#1a8fb4;display:flex;align-items:center;justify-content:center;margin-bottom:18px;transform:scale(0.6);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+.magic-overlay.show .check-circle{transform:scale(1);opacity:1;transition-delay:.1s;}
+.check-circle i{font-size:38px;color:#fff;}
+.magic-title{color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;}
+.magic-sub{color:#a8d8ea;font-size:12.5px;line-height:1.6;margin-bottom:22px;}
+.magic-sync-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:13px;padding:13px;width:100%;display:flex;align-items:center;gap:10px;margin-bottom:22px;opacity:0;transform:translateY(8px);transition:all .4s;}
+.magic-overlay.show .magic-sync-card{opacity:1;transform:translateY(0);transition-delay:.35s;}
+.magic-sync-icon{width:34px;height:34px;border-radius:9px;background:#4dd0e1;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b3a52;flex-shrink:0;}
+.magic-sync-text{text-align:left;flex:1;}
+.magic-sync-title{color:#fff;font-size:12px;font-weight:700;}
+.magic-sync-sub{color:#a8d8ea;font-size:10.5px;margin-top:1px;}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:#7fffa0;flex-shrink:0;box-shadow:0 0 0 0 rgba(127,255,160,0.6);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(127,255,160,0.5);}70%{box-shadow:0 0 0 7px rgba(127,255,160,0);}100%{box-shadow:0 0 0 0 rgba(127,255,160,0);}}
+.magic-done-btn{width:100%;background:#fff;color:#0b3a52;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;opacity:0;transition:opacity .4s;}
+.magic-overlay.show .magic-done-btn{opacity:1;transition-delay:.5s;}
+
+.bottom-nav{background:#fff;border-top:0.5px solid #dde8f0;display:flex;padding:8px 0 10px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0;}
+.nav-item i{font-size:20px;color:#9ab5c0;}
+.nav-item span{font-size:10px;color:#9ab5c0;font-weight:500;}
+.nav-item.active i{color:#0b3a52;}
+.nav-item.active span{color:#0b3a52;font-weight:700;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone" id="phone-root">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="back-btn" id="step-back-btn" aria-label="Back"><i class="ti ti-arrow-left"></i></button>
+      <div class="topbar-info">
+        <div class="topbar-sub" id="step-sub">New prescription</div>
+        <div class="topbar-title" id="step-title">Select Patient</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-seg active" id="seg-1"></div>
+      <div class="step-seg" id="seg-2"></div>
+      <div class="step-seg" id="seg-3"></div>
+    </div>
+    <div class="step-label" id="step-counter">STEP 1 OF 3</div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- PANEL 1: SELECT PATIENT -->
+    <div class="panel active" id="panel-1">
+      <div class="search-bar">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <span>Search patients...</span>
+      </div>
+      <div class="section-label">All patients</div>
+
+      <div class="patient-card" data-name="Rajesh Kumar" data-meta="68 yrs · Diabetes, Hypertension" data-initials="RK">
+        <div class="p-avatar">RK</div>
+        <div class="p-info">
+          <div class="p-name">Rajesh Kumar</div>
+          <div class="p-meta">68 yrs · Diabetes, Hypertension</div>
+        </div>
+        <i class="ti ti-chevron-right p-chevron"></i>
+      </div>
+
+      <div class="patient-card" data-name="Suresh Krishnan" data-meta="74 yrs · Heart disease" data-initials="SK">
+        <div class="p-avatar">SK</div>
+        <div class="p-info">
+          <div class="p-name">Suresh Krishnan</div>
+          <div class="p-meta">74 yrs · Heart disease</div>
+        </div>
+        <i class="ti ti-chevron-right p-chevron"></i>
+      </div>
+
+      <div class="patient-card" data-name="Meena Sharma" data-meta="61 yrs · Thyroid, BP" data-initials="MS">
+        <div class="p-avatar">MS</div>
+        <div class="p-info">
+          <div class="p-name">Meena Sharma</div>
+          <div class="p-meta">61 yrs · Thyroid, BP</div>
+        </div>
+        <i class="ti ti-chevron-right p-chevron"></i>
+      </div>
+
+      <div class="patient-card" data-name="Anita Patel" data-meta="55 yrs · Diabetes" data-initials="AP">
+        <div class="p-avatar">AP</div>
+        <div class="p-info">
+          <div class="p-name">Anita Patel</div>
+          <div class="p-meta">55 yrs · Diabetes</div>
+        </div>
+        <i class="ti ti-chevron-right p-chevron"></i>
+      </div>
+
+      <div class="patient-card" data-name="Vijay Rao" data-meta="59 yrs · Hypertension" data-initials="VR">
+        <div class="p-avatar">VR</div>
+        <div class="p-info">
+          <div class="p-name">Vijay Rao</div>
+          <div class="p-meta">59 yrs · Hypertension</div>
+        </div>
+        <i class="ti ti-chevron-right p-chevron"></i>
+      </div>
+    </div>
+
+    <!-- PANEL 2: ADD MEDICINES -->
+    <div class="panel" id="panel-2">
+      <div class="patient-summary">
+        <div class="p-avatar" id="sum-avatar">RK</div>
+        <div class="p-info">
+          <div class="p-name" id="sum-name">Rajesh Kumar</div>
+          <div class="p-meta" id="sum-meta">68 yrs · Diabetes, Hypertension</div>
+        </div>
+        <button class="change-link" id="change-patient-btn">Change</button>
+      </div>
+
+      <div class="section-label">Medicines added</div>
+      <div id="added-meds-list">
+        <div class="empty-meds">
+          <i class="ti ti-prescription" aria-hidden="true"></i>
+          No medicines added yet
+        </div>
+      </div>
+
+      <div class="form-card" id="med-form-card">
+        <div class="field-label">Medicine name</div>
+        <input class="text-input" id="med-name" placeholder="e.g. Atorvastatin 10mg" />
+
+        <div class="field-label">Dosage</div>
+        <input class="text-input" id="med-dosage" placeholder="e.g. 1 tablet" />
+
+        <div class="field-label">Frequency</div>
+        <div class="chip-row" id="freq-row">
+          <div class="chip" data-val="Once daily">Once daily</div>
+          <div class="chip" data-val="Twice daily">Twice daily</div>
+          <div class="chip" data-val="Thrice daily">Thrice daily</div>
+        </div>
+
+        <div class="field-label">Time of day</div>
+        <div class="time-grid">
+          <div class="time-input"><i class="ti ti-clock"></i><input type="time" id="med-time1" value="08:00"></div>
+          <div class="time-input"><i class="ti ti-clock"></i><input type="time" id="med-time2" value="21:00" style="display:none" disabled></div>
+        </div>
+
+        <div class="field-label">Before or after food</div>
+        <div class="chip-row" id="food-row">
+          <div class="chip" data-val="Before food">Before food</div>
+          <div class="chip" data-val="After food">After food</div>
+        </div>
+
+        <button class="add-med-btn" id="add-med-btn">
+          <i class="ti ti-plus" style="font-size:15px"></i> Add Medicine
+        </button>
+      </div>
+
+      <button class="primary-btn" id="to-review-btn" disabled>
+        Continue to Review <i class="ti ti-arrow-right" style="font-size:15px"></i>
+      </button>
+    </div>
+
+    <!-- PANEL 3: REVIEW & SEND -->
+    <div class="panel" id="panel-3">
+      <div class="review-banner">
+        <i class="ti ti-info-circle"></i>
+        <span>Review the prescription below. Once sent, it appears instantly in the patient's reminder app.</span>
+      </div>
+
+      <div class="patient-summary">
+        <div class="p-avatar" id="rev-avatar">RK</div>
+        <div class="p-info">
+          <div class="p-name" id="rev-name">Rajesh Kumar</div>
+          <div class="p-meta" id="rev-meta">68 yrs · Diabetes, Hypertension</div>
+        </div>
+      </div>
+
+      <div class="section-label">Prescribed medicines</div>
+      <div id="review-meds-list"></div>
+
+      <button class="primary-btn" id="send-prescription-btn">
+        <i class="ti ti-send" style="font-size:15px"></i> Send Prescription
+      </button>
+      <button class="secondary-btn" id="back-to-edit-btn">
+        <i class="ti ti-pencil" style="font-size:14px"></i> Edit medicines
+      </button>
+    </div>
+
+  </div>
+
+  <!-- MAGIC MOMENT OVERLAY -->
+  <div class="magic-overlay" id="magic-overlay">
+    <div class="check-circle"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div class="magic-title" id="magic-title">Prescription sent to Rajesh!</div>
+    <div class="magic-sub">3 medicines have been added to his reminder schedule. He'll get a notification right away.</div>
+    <div class="magic-sync-card">
+      <div class="magic-sync-icon"><i class="ti ti-device-mobile" aria-hidden="true"></i></div>
+      <div class="magic-sync-text">
+        <div class="magic-sync-title">Synced to patient's app</div>
+        <div class="magic-sync-sub">New reminders live on his home screen</div>
+      </div>
+      <div class="pulse-dot"></div>
+    </div>
+    <button class="magic-done-btn" id="magic-done-btn">Done</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item" aria-label="Patients" onclick="sendPrompt('Go back to the doctor dashboard')">
+      <i class="ti ti-users" aria-hidden="true"></i>
+      <span>Patients</span>
+    </button>
+    <button class="nav-item active" aria-label="Prescribe">
+      <i class="ti ti-prescription" aria-hidden="true"></i>
+      <span>Prescribe</span>
+    </button>
+    <button class="nav-item" aria-label="Reports">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <span>Reports</span>
+    </button>
+    <button class="nav-item" aria-label="Profile">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <span>Profile</span>
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  let currentStep = 1;
+  let selectedPatient = null;
+  let addedMeds = [];
+  let selectedFreq = null;
+  let selectedFood = null;
+
+  const panels = {1:document.getElementById('panel-1'),2:document.getElementById('panel-2'),3:document.getElementById('panel-3')};
+  const segs = {1:document.getElementById('seg-1'),2:document.getElementById('seg-2'),3:document.getElementById('seg-3')};
+  const stepTitle = document.getElementById('step-title');
+  const stepSub = document.getElementById('step-sub');
+  const stepCounter = document.getElementById('step-counter');
+
+  const stepConfig = {
+    1:{title:'Select Patient', sub:'New prescription'},
+    2:{title:'Add Medicines', sub:'New prescription'},
+    3:{title:'Review & Send', sub:'New prescription'}
+  };
+
+  function goToStep(n){
+    currentStep = n;
+    Object.keys(panels).forEach(k=>panels[k].classList.toggle('active', Number(k)===n));
+    Object.keys(segs).forEach(k=>{
+      segs[k].classList.remove('active','done');
+      if(Number(k) < n) segs[k].classList.add('done');
+      if(Number(k) === n) segs[k].classList.add('active');
+    });
+    stepTitle.textContent = stepConfig[n].title;
+    stepSub.textContent = stepConfig[n].sub;
+    stepCounter.textContent = 'STEP ' + n + ' OF 3';
+  }
+
+  // STEP 1 -> select patient
+  document.querySelectorAll('#panel-1 .patient-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      document.querySelectorAll('#panel-1 .patient-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedPatient = {
+        name: card.dataset.name,
+        meta: card.dataset.meta,
+        initials: card.dataset.initials
+      };
+      document.getElementById('sum-avatar').textContent = selectedPatient.initials;
+      document.getElementById('sum-name').textContent = selectedPatient.name;
+      document.getElementById('sum-meta').textContent = selectedPatient.meta;
+      setTimeout(()=>goToStep(2), 180);
+    });
+  });
+
+  document.getElementById('change-patient-btn').addEventListener('click', ()=>goToStep(1));
+  document.getElementById('back-to-edit-btn').addEventListener('click', ()=>goToStep(2));
+
+  document.getElementById('step-back-btn').addEventListener('click', ()=>{
+    if(currentStep > 1) goToStep(currentStep - 1);
+    else sendPrompt('Go back to the doctor dashboard');
+  });
+
+  // STEP 2 -> frequency chips
+  document.querySelectorAll('#freq-row .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#freq-row .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedFreq = chip.dataset.val;
+      const time2 = document.getElementById('med-time2');
+      if(selectedFreq === 'Twice daily' || selectedFreq === 'Thrice daily'){
+        time2.style.display = 'block';
+        time2.disabled = false;
+      } else {
+        time2.style.display = 'none';
+        time2.disabled = true;
+      }
+    });
+  });
+
+  // STEP 2 -> food chips
+  document.querySelectorAll('#food-row .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#food-row .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedFood = chip.dataset.val;
+    });
+  });
+
+  function renderAddedMeds(containerId){
+    const list = document.getElementById(containerId);
+    if(addedMeds.length === 0){
+      list.innerHTML = '<div class="empty-meds"><i class="ti ti-prescription" aria-hidden="true"></i>No medicines added yet</div>';
+      return;
+    }
+    list.innerHTML = addedMeds.map((m, idx)=>{
+      const foodPillClass = m.food === 'Before food' ? 'pill-red' : 'pill-green';
+      return '<div class="med-added-card">' +
+        '<div class="med-added-top">' +
+          '<div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>' +
+          '<div class="med-added-name">' + m.name + '</div>' +
+          (containerId==='added-meds-list' ? '<button class="remove-btn" data-idx="'+idx+'" aria-label="Remove"><i class="ti ti-trash"></i></button>' : '') +
+        '</div>' +
+        '<div class="med-meta">' +
+          '<span class="pill pill-blue">' + m.dosage + '</span>' +
+          '<span class="pill pill-amber">' + m.freq + '</span>' +
+          '<span class="pill ' + foodPillClass + '">' + m.food + '</span>' +
+          '<span class="pill pill-blue"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> ' + m.times.join(', ') + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    if(containerId === 'added-meds-list'){
+      list.querySelectorAll('.remove-btn').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          addedMeds.splice(Number(btn.dataset.idx), 1);
+          renderAddedMeds('added-meds-list');
+          updateContinueBtn();
+        });
+      });
+    }
+  }
+
+  function updateContinueBtn(){
+    document.getElementById('to-review-btn').disabled = addedMeds.length === 0;
+  }
+
+  document.getElementById('add-med-btn').addEventListener('click', ()=>{
+    const name = document.getElementById('med-name').value.trim();
+    const dosage = document.getElementById('med-dosage').value.trim();
+    if(!name || !dosage || !selectedFreq || !selectedFood){
+      document.getElementById('med-form-card').style.borderColor = '#ef9a9a';
+      setTimeout(()=>{document.getElementById('med-form-card').style.borderColor = '#dde8f0';}, 600);
+      return;
+    }
+    const time1 = document.getElementById('med-time1').value;
+    const time2 = document.getElementById('med-time2').value;
+    const times = [time1];
+    if(!document.getElementById('med-time2').disabled) times.push(time2);
+
+    addedMeds.push({name, dosage, freq: selectedFreq, food: selectedFood, times});
+    renderAddedMeds('added-meds-list');
+    updateContinueBtn();
+
+    // reset form
+    document.getElementById('med-name').value = '';
+    document.getElementById('med-dosage').value = '';
+    document.querySelectorAll('#freq-row .chip, #food-row .chip').forEach(c=>c.classList.remove('active'));
+    selectedFreq = null;
+    selectedFood = null;
+    document.getElementById('med-time2').style.display = 'none';
+    document.getElementById('med-time2').disabled = true;
+  });
+
+  document.getElementById('to-review-btn').addEventListener('click', ()=>{
+    document.getElementById('rev-avatar').textContent = selectedPatient.initials;
+    document.getElementById('rev-name').textContent = selectedPatient.name;
+    document.getElementById('rev-meta').textContent = selectedPatient.meta;
+    renderAddedMeds('review-meds-list');
+    goToStep(3);
+  });
+
+  // STEP 3 -> send prescription -> magic moment
+  document.getElementById('send-prescription-btn').addEventListener('click', ()=>{
+    const firstName = selectedPatient.name.split(' ')[0];
+    document.getElementById('magic-title').textContent = 'Prescription sent to ' + firstName + '!';
+    document.querySelector('.magic-sub').textContent = addedMeds.length + ' medicine' + (addedMeds.length>1?'s':'') + ' have been added to ' + (selectedPatient.name.endsWith('a') ? 'her' : 'his') + ' reminder schedule. ' + (selectedPatient.name.endsWith('a') ? 'She' : 'He') + "'ll get a notification right away.";
+    document.getElementById('magic-overlay').classList.add('show');
+  });
+
+  document.getElementById('magic-done-btn').addEventListener('click', ()=>{
+    document.getElementById('magic-overlay').classList.remove('show');
+    sendPrompt('Build Screen 6 — Add Patient screen next');
+  });
+
+})();
+</script>
+</body>
+</html>

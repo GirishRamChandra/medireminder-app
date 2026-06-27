@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - doctor patient view</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+.status{background:#0b3a52;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0b3a52;padding:12px 16px 14px;}
+.topbar-row{display:flex;align-items:center;gap:10px;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-sub{color:#a8c8d8;font-size:11px;font-weight:500;margin-bottom:1px;}
+.topbar-title{color:#fff;font-size:17px;font-weight:700;}
+.flag-btn{background:#c62828;border:none;border-radius:9px;padding:6px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.scroll-area{padding:13px 13px 80px;overflow-y:auto;max-height:480px;}
+.alert-banner{background:#fdecea;border:1px solid #ef9a9a;border-radius:11px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;}
+.alert-icon{color:#c62828;font-size:18px;flex-shrink:0;margin-top:1px;}
+.alert-text{font-size:12px;color:#7f1d1d;line-height:1.5;}
+.alert-title{font-weight:700;font-size:13px;color:#b71c1c;margin-bottom:2px;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px;}
+.stat-card{background:#fff;border-radius:11px;padding:9px 8px;border:0.5px solid #dde8f0;text-align:center;}
+.stat-num{font-size:19px;font-weight:700;}
+.stat-label{font-size:10px;color:#7090a0;margin-top:2px;font-weight:500;line-height:1.3;}
+.section-label{font-size:10px;font-weight:700;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:9px;}
+.calendar-card{background:#fff;border-radius:13px;padding:13px;border:0.5px solid #dde8f0;margin-bottom:11px;}
+.cal-month-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cal-month{font-size:13px;font-weight:700;color:#0b3a52;}
+.cal-legend{display:flex;gap:8px;}
+.leg{display:flex;align-items:center;gap:3px;font-size:9px;color:#7090a0;font-weight:500;}
+.leg-dot{width:8px;height:8px;border-radius:2px;}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:5px;}
+.cal-day-name{text-align:center;font-size:9px;font-weight:700;color:#9ab5c0;padding:2px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;position:relative;}
+.cal-cell.taken{background:#e8f5e9;color:#2e7d32;}
+.cal-cell.missed{background:#fdecea;color:#c62828;}
+.cal-cell.partial{background:#fff8e1;color:#e65100;}
+.cal-cell.future{background:#f0f4f8;color:#b0c4cc;}
+.cal-cell.today{border:2px solid #0b3a52;color:#0b3a52;background:#e3f0f8;}
+.cal-cell.empty{background:transparent;}
+.pattern-card{background:#fff;border-radius:13px;padding:13px;border:0.5px solid #dde8f0;margin-bottom:11px;}
+.pattern-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #eef2f5;}
+.pattern-row:last-child{border-bottom:none;padding-bottom:0;}
+.pattern-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.pattern-text{flex:1;}
+.pattern-title{font-size:12px;font-weight:600;color:#0b2a38;}
+.pattern-sub{font-size:10px;color:#7090a0;margin-top:1px;}
+.pattern-badge{font-size:10px;font-weight:700;border-radius:6px;padding:3px 7px;}
+.med-breakdown{background:#fff;border-radius:13px;padding:13px;border:0.5px solid #dde8f0;margin-bottom:11px;}
+.med-row{padding:8px 0;border-bottom:0.5px solid #eef2f5;}
+.med-row:last-child{border-bottom:none;padding-bottom:0;}
+.med-row-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.med-icon{width:28px;height:28px;border-radius:8px;background:#e6f4f9;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0d6e8e;flex-shrink:0;}
+.med-name{font-size:13px;font-weight:600;color:#0b2a38;flex:1;}
+.med-pct{font-size:13px;font-weight:700;}
+.trend-row{display:flex;gap:3px;padding-left:36px;}
+.trend-bar{flex:1;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+.note-btn{width:100%;background:#0b3a52;color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px;}
+.msg-btn{width:100%;background:#fff;color:#0b3a52;border:1.5px solid #0b3a52;border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.bottom-nav{background:#fff;border-top:0.5px solid #dde8f0;display:flex;padding:8px 0 10px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0;}
+.nav-item i{font-size:20px;color:#9ab5c0;}
+.nav-item span{font-size:10px;color:#9ab5c0;font-weight:500;}
+.nav-item.active i{color:#0b3a52;}
+.nav-item.active span{color:#0b3a52;font-weight:700;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="back-btn" aria-label="Back to patients"><i class="ti ti-arrow-left"></i></button>
+      <div class="topbar-info">
+        <div class="topbar-sub">Patient report</div>
+        <div class="topbar-title">Rajesh Kumar</div>
+      </div>
+      <button class="flag-btn" aria-label="Flag patient">
+        <i class="ti ti-flag" style="font-size:13px"></i> Flag
+      </button>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <div class="alert-banner">
+      <i class="ti ti-alert-triangle" class="alert-icon" style="color:#c62828;font-size:18px;flex-shrink:0;margin-top:1px;" aria-hidden="true"></i>
+      <div class="alert-text">
+        <div class="alert-title">Missed pattern detected</div>
+        Rajesh has missed Atorvastatin 3 evenings in a row. Consider following up.
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#2e7d32;">88%</div>
+        <div class="stat-label">Overall adherence</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:#c62828;">3</div>
+        <div class="stat-label">Days missed this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:#0b3a52;">12</div>
+        <div class="stat-label">Day streak</div>
+      </div>
+    </div>
+
+    <div class="section-label">Adherence calendar — June 2026</div>
+
+    <div class="calendar-card">
+      <div class="cal-month-row">
+        <span class="cal-month">June 2026</span>
+        <div class="cal-legend">
+          <div class="leg"><div class="leg-dot" style="background:#e8f5e9;border:1px solid #2e7d32;"></div>Taken</div>
+          <div class="leg"><div class="leg-dot" style="background:#fdecea;border:1px solid #c62828;"></div>Missed</div>
+          <div class="leg"><div class="leg-dot" style="background:#fff8e1;border:1px solid #e65100;"></div>Partial</div>
+        </div>
+      </div>
+      <div class="cal-header">
+        <div class="cal-day-name">S</div><div class="cal-day-name">M</div>
+        <div class="cal-day-name">T</div><div class="cal-day-name">W</div>
+        <div class="cal-day-name">T</div><div class="cal-day-name">F</div>
+        <div class="cal-day-name">S</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="section-label">Missed dose patterns</div>
+
+    <div class="pattern-card">
+      <div class="pattern-row">
+        <div class="pattern-icon" style="background:#fdecea;color:#c62828;"><i class="ti ti-moon" aria-hidden="true"></i></div>
+        <div class="pattern-text">
+          <div class="pattern-title">Evening doses</div>
+          <div class="pattern-sub">Most misses happen after 9 PM</div>
+        </div>
+        <div class="pattern-badge" style="background:#fdecea;color:#b71c1c;">High risk</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-icon" style="background:#fff8e1;color:#e65100;"><i class="ti ti-calendar-week" aria-hidden="true"></i></div>
+        <div class="pattern-text">
+          <div class="pattern-title">Weekends</div>
+          <div class="pattern-sub">Sat–Sun adherence drops to 71%</div>
+        </div>
+        <div class="pattern-badge" style="background:#fff8e1;color:#e65100;">Moderate</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="ti ti-sun" aria-hidden="true"></i></div>
+        <div class="pattern-text">
+          <div class="pattern-title">Morning doses</div>
+          <div class="pattern-sub">Consistently taken — 98% rate</div>
+        </div>
+        <div class="pattern-badge" style="background:#e8f5e9;color:#2e7d32;">Good</div>
+      </div>
+    </div>
+
+    <div class="section-label">Per-medicine trend — last 4 weeks</div>
+
+    <div class="med-breakdown">
+      <div class="med-row">
+        <div class="med-row-top">
+          <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+          <div class="med-name">Metformin 500mg</div>
+          <div class="med-pct" style="color:#2e7d32;">94%</div>
+        </div>
+        <div class="trend-row">
+          <div class="trend-bar" style="background:#c8e6c9;color:#1b5e20;">W1<br>96%</div>
+          <div class="trend-bar" style="background:#a5d6a7;color:#1b5e20;">W2<br>100%</div>
+          <div class="trend-bar" style="background:#c8e6c9;color:#1b5e20;">W3<br>93%</div>
+          <div class="trend-bar" style="background:#c8e6c9;color:#1b5e20;">W4<br>89%</div>
+        </div>
+      </div>
+      <div class="med-row">
+        <div class="med-row-top">
+          <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+          <div class="med-name">Amlodipine 5mg</div>
+          <div class="med-pct" style="color:#e65100;">85%</div>
+        </div>
+        <div class="trend-row">
+          <div class="trend-bar" style="background:#c8e6c9;color:#1b5e20;">W1<br>92%</div>
+          <div class="trend-bar" style="background:#fff9c4;color:#f57f17;">W2<br>86%</div>
+          <div class="trend-bar" style="background:#fff9c4;color:#f57f17;">W3<br>79%</div>
+          <div class="trend-bar" style="background:#fff9c4;color:#f57f17;">W4<br>83%</div>
+        </div>
+      </div>
+      <div class="med-row">
+        <div class="med-row-top">
+          <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+          <div class="med-name">Atorvastatin 10mg</div>
+          <div class="med-pct" style="color:#c62828;">71%</div>
+        </div>
+        <div class="trend-row">
+          <div class="trend-bar" style="background:#fff9c4;color:#f57f17;">W1<br>85%</div>
+          <div class="trend-bar" style="background:#ffccbc;color:#bf360c;">W2<br>71%</div>
+          <div class="trend-bar" style="background:#ffccbc;color:#bf360c;">W3<br>64%</div>
+          <div class="trend-bar" style="background:#ffccbc;color:#bf360c;">W4<br>64%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Actions</div>
+    <button class="note-btn"><i class="ti ti-notes" style="font-size:15px"></i> Add clinical note</button>
+    <button class="msg-btn"><i class="ti ti-message" style="font-size:15px"></i> Send reminder to patient</button>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active" aria-label="Patients">
+      <i class="ti ti-users" aria-hidden="true"></i>
+      <span>Patients</span>
+    </button>
+    <button class="nav-item" aria-label="Prescribe">
+      <i class="ti ti-prescription" aria-hidden="true"></i>
+      <span>Prescribe</span>
+    </button>
+    <button class="nav-item" aria-label="Reports">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <span>Reports</span>
+    </button>
+    <button class="nav-item" aria-label="Profile">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <span>Profile</span>
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+const data = [
+  '','','taken','taken','taken','taken','taken',
+  'taken','taken','missed','taken','taken','partial','taken',
+  'taken','missed','taken','taken','taken','partial','taken',
+  'taken','taken','taken','missed','taken','today','future',
+  'future','future'
+];
+const grid = document.getElementById('cal-grid');
+data.forEach((type,i)=>{
+  const cell=document.createElement('div');
+  const day=i+1;
+  if(type===''){
+    cell.className='cal-cell empty';
+  } else {
+    cell.className='cal-cell '+type;
+    cell.textContent=day;
+  }
+  grid.appendChild(cell);
+});
+</script>
+</body>
+</html>

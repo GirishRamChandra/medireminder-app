@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - login onboarding</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#fff;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position:relative;}
+.status{background:#0d4f6e;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+
+.topbar{background:#0d4f6e;padding:14px 18px 26px;position:relative;}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;}
+.skip-link{background:none;border:none;color:#a8d8ea;font-size:12px;font-weight:600;cursor:pointer;}
+.logo-row{display:flex;align-items:center;gap:9px;justify-content:center;margin-top:6px;}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.logo-text{color:#fff;font-size:18px;font-weight:700;letter-spacing:-0.01em;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+.scroll-area{padding:22px 22px 30px;min-height:380px;display:flex;flex-direction:column;}
+
+/* ONBOARDING */
+.onb-illustration{width:108px;height:108px;border-radius:28px;background:#e3f0f8;display:flex;align-items:center;justify-content:center;margin:14px auto 26px;}
+.onb-illustration i{font-size:48px;color:#0d6e8e;}
+.onb-headline{font-size:19px;font-weight:700;color:#0b2a38;text-align:center;margin-bottom:10px;line-height:1.3;}
+.onb-sub{font-size:13px;color:#7090a0;text-align:center;line-height:1.6;padding:0 8px;}
+.dots-row{display:flex;justify-content:center;gap:6px;margin:26px 0 18px;}
+.dot{width:7px;height:7px;border-radius:50%;background:#dde8f0;}
+.dot.active{width:20px;border-radius:5px;background:#0d6e8e;}
+.spacer{flex:1;}
+
+/* ROLE SELECT */
+.tagline{font-size:13px;color:#7090a0;text-align:center;margin:10px 0 26px;line-height:1.5;}
+.role-card{display:flex;align-items:center;gap:13px;background:#f9fbfc;border:1.5px solid #e3ecf1;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .12s;}
+.role-card:hover{border-color:#0d6e8e;background:#eef6fa;}
+.role-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.role-icon.patient{background:#e3f0f8;color:#0d6e8e;}
+.role-icon.doctor{background:#eaf2ff;color:#0b3a52;}
+.role-text{flex:1;}
+.role-title{font-size:15px;font-weight:700;color:#0b2a38;}
+.role-sub{font-size:11.5px;color:#7090a0;margin-top:2px;}
+.role-chevron{color:#c2d4dc;font-size:18px;}
+
+/* LOGIN FORM */
+.login-icon-wrap{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:6px auto 18px;}
+.login-icon-wrap.patient{background:#e3f0f8;color:#0d6e8e;}
+.login-icon-wrap.doctor{background:#eaf2ff;color:#0b3a52;}
+.login-icon-wrap i{font-size:28px;}
+.login-title{font-size:17px;font-weight:700;color:#0b2a38;text-align:center;margin-bottom:6px;}
+.login-sub{font-size:12.5px;color:#7090a0;text-align:center;margin-bottom:22px;line-height:1.5;}
+.field-label{font-size:11px;font-weight:700;color:#5a7f90;margin-bottom:7px;letter-spacing:0.02em;}
+.phone-input-row{display:flex;gap:8px;margin-bottom:16px;}
+.country-code{border:1px solid #dde8f0;border-radius:10px;padding:11px 10px;background:#f9fbfc;font-size:13px;font-weight:600;color:#0b2a38;display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.text-input{width:100%;border:1px solid #dde8f0;border-radius:10px;padding:11px 13px;font-size:14px;color:#0b2a38;background:#f9fbfc;}
+.text-input::placeholder{color:#aebfc8;}
+.terms-text{font-size:10.5px;color:#9ab5c0;text-align:center;line-height:1.6;margin-top:14px;}
+.terms-text a{color:#0d6e8e;font-weight:600;text-decoration:none;}
+
+/* OTP */
+.otp-row{display:flex;gap:9px;justify-content:center;margin-bottom:18px;}
+.otp-box{width:42px;height:50px;border:1.5px solid #dde8f0;border-radius:11px;text-align:center;font-size:19px;font-weight:700;color:#0b2a38;background:#f9fbfc;}
+.otp-box:focus{outline:none;border-color:#0d6e8e;background:#fff;}
+.resend-row{text-align:center;font-size:12px;color:#7090a0;margin-bottom:4px;}
+.resend-row a{color:#0d6e8e;font-weight:700;text-decoration:none;}
+
+/* BUTTONS */
+.cta-btn{width:100%;border:none;border-radius:13px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px;}
+.cta-btn.patient{background:#0d4f6e;color:#fff;}
+.cta-btn.doctor{background:#0b3a52;color:#fff;}
+.cta-btn:disabled{background:#cdd9df;cursor:not-allowed;}
+.text-btn{width:100%;background:none;border:none;color:#7090a0;font-size:12px;font-weight:600;padding:12px;cursor:pointer;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone" id="phone-root">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="back-btn" id="onb-back-btn" style="visibility:hidden" aria-label="Back"><i class="ti ti-arrow-left"></i></button>
+      <span style="flex:1"></span>
+      <button class="skip-link" id="skip-btn">Skip</button>
+    </div>
+    <div class="logo-row" id="logo-row">
+      <div class="logo-mark"><i class="ti ti-pill" aria-hidden="true"></i></div>
+      <div class="logo-text">MediReminder</div>
+    </div>
+  </div>
+
+  <!-- PANEL 1: ONBOARDING SLIDES -->
+  <div class="panel active" id="panel-onb">
+    <div class="scroll-area">
+
+      <div id="onb-slide-1">
+        <div class="onb-illustration"><i class="ti ti-bell-ringing" aria-hidden="true"></i></div>
+        <div class="onb-headline">Never miss a dose again</div>
+        <div class="onb-sub">Gentle reminders at the right time, every time — for every medicine you take.</div>
+      </div>
+      <div id="onb-slide-2" style="display:none">
+        <div class="onb-illustration"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
+        <div class="onb-headline">Your doctor stays in the loop</div>
+        <div class="onb-sub">Doctors can see your adherence in real time and step in if you need support.</div>
+      </div>
+      <div id="onb-slide-3" style="display:none">
+        <div class="onb-illustration"><i class="ti ti-heart-handshake" aria-hidden="true"></i></div>
+        <div class="onb-headline">Better health, together</div>
+        <div class="onb-sub">Track streaks, celebrate progress, and build habits that actually stick.</div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="dots-row" id="dots-row">
+        <div class="dot active" data-i="1"></div>
+        <div class="dot" data-i="2"></div>
+        <div class="dot" data-i="3"></div>
+      </div>
+      <button class="cta-btn patient" id="onb-next-btn">Next <i class="ti ti-arrow-right" style="font-size:15px"></i></button>
+    </div>
+  </div>
+
+  <!-- PANEL 2: ROLE SELECT -->
+  <div class="panel" id="panel-role">
+    <div class="scroll-area">
+      <div class="tagline">Choose how you'd like to continue</div>
+
+      <div class="role-card" id="role-patient">
+        <div class="role-icon patient"><i class="ti ti-user" aria-hidden="true"></i></div>
+        <div class="role-text">
+          <div class="role-title">I'm a Patient</div>
+          <div class="role-sub">Track and manage my own medicines</div>
+        </div>
+        <i class="ti ti-chevron-right role-chevron"></i>
+      </div>
+
+      <div class="role-card" id="role-doctor">
+        <div class="role-icon doctor"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
+        <div class="role-text">
+          <div class="role-title">I'm a Doctor</div>
+          <div class="role-sub">Monitor my patients' adherence</div>
+        </div>
+        <i class="ti ti-chevron-right role-chevron"></i>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="terms-text">By continuing, you agree to MediReminder's <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: PHONE LOGIN -->
+  <div class="panel" id="panel-login">
+    <div class="scroll-area">
+      <div class="login-icon-wrap" id="login-icon-wrap"><i class="ti ti-user" aria-hidden="true"></i></div>
+      <div class="login-title" id="login-title">Patient Login</div>
+      <div class="login-sub" id="login-sub">Enter your mobile number to receive a one-time password</div>
+
+      <div class="field-label">Mobile number</div>
+      <div class="phone-input-row">
+        <div class="country-code"><i class="ti ti-flag" style="font-size:12px"></i> +91</div>
+        <input class="text-input" id="phone-input" type="tel" placeholder="98765 43210" maxlength="10" />
+      </div>
+
+      <button class="cta-btn" id="send-otp-btn" disabled>Send OTP <i class="ti ti-arrow-right" style="font-size:15px"></i></button>
+      <div class="terms-text">We'll never share your number with anyone else</div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: OTP VERIFY -->
+  <div class="panel" id="panel-otp">
+    <div class="scroll-area">
+      <div class="login-icon-wrap" id="otp-icon-wrap"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
+      <div class="login-title">Enter verification code</div>
+      <div class="login-sub">We've sent a 4-digit code to <span id="otp-phone-display" style="font-weight:700;color:#0b2a38">+91 98765 43210</span></div>
+
+      <div class="otp-row">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+      </div>
+
+      <div class="resend-row">Didn't get the code? <a href="#" id="resend-link">Resend</a></div>
+
+      <div class="spacer"></div>
+      <button class="cta-btn" id="verify-btn">Verify &amp; Continue <i class="ti ti-check" style="font-size:15px"></i></button>
+      <button class="text-btn" id="change-number-btn">Change mobile number</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  let onbSlide = 1;
+  let selectedRole = 'patient'; // 'patient' | 'doctor'
+
+  const panelOnb = document.getElementById('panel-onb');
+  const panelRole = document.getElementById('panel-role');
+  const panelLogin = document.getElementById('panel-login');
+  const panelOtp = document.getElementById('panel-otp');
+  const backBtn = document.getElementById('onb-back-btn');
+  const skipBtn = document.getElementById('skip-btn');
+
+  function showPanel(p){
+    [panelOnb, panelRole, panelLogin, panelOtp].forEach(el=>el.classList.remove('active'));
+    p.classList.add('active');
+  }
+
+  function setTopbarChrome(opts){
+    backBtn.style.visibility = opts.showBack ? 'visible' : 'hidden';
+    skipBtn.style.display = opts.showSkip ? 'inline-block' : 'none';
+  }
+
+  // ---- ONBOARDING ----
+  const slides = {1:document.getElementById('onb-slide-1'),2:document.getElementById('onb-slide-2'),3:document.getElementById('onb-slide-3')};
+  function renderSlide(n){
+    Object.keys(slides).forEach(k=>slides[k].style.display = Number(k)===n ? 'block':'none');
+    document.querySelectorAll('#dots-row .dot').forEach(d=>d.classList.toggle('active', Number(d.dataset.i)===n));
+    document.getElementById('onb-next-btn').innerHTML = n < 3
+      ? 'Next <i class="ti ti-arrow-right" style="font-size:15px"></i>'
+      : 'Get Started <i class="ti ti-arrow-right" style="font-size:15px"></i>';
+  }
+  setTopbarChrome({showBack:false, showSkip:true});
+
+  document.getElementById('onb-next-btn').addEventListener('click', ()=>{
+    if(onbSlide < 3){
+      onbSlide++;
+      renderSlide(onbSlide);
+    } else {
+      goToRoleSelect();
+    }
+  });
+  skipBtn.addEventListener('click', goToRoleSelect);
+
+  function goToRoleSelect(){
+    showPanel(panelRole);
+    setTopbarChrome({showBack:false, showSkip:false});
+  }
+
+  // ---- ROLE SELECT ----
+  document.getElementById('role-patient').addEventListener('click', ()=>{
+    selectedRole = 'patient';
+    configureLoginForRole();
+    showPanel(panelLogin);
+    setTopbarChrome({showBack:true, showSkip:false});
+  });
+  document.getElementById('role-doctor').addEventListener('click', ()=>{
+    selectedRole = 'doctor';
+    configureLoginForRole();
+    showPanel(panelLogin);
+    setTopbarChrome({showBack:true, showSkip:false});
+  });
+
+  function configureLoginForRole(){
+    const iconWrap = document.getElementById('login-icon-wrap');
+    const title = document.getElementById('login-title');
+    const sub = document.getElementById('login-sub');
+    const btn = document.getElementById('send-otp-btn');
+    iconWrap.className = 'login-icon-wrap ' + selectedRole;
+    iconWrap.innerHTML = selectedRole === 'patient'
+      ? '<i class="ti ti-user" aria-hidden="true"></i>'
+      : '<i class="ti ti-stethoscope" aria-hidden="true"></i>';
+    title.textContent = selectedRole === 'patient' ? 'Patient Login' : 'Doctor Login';
+    sub.textContent = selectedRole === 'patient'
+      ? 'Enter your mobile number to receive a one-time password'
+      : "Enter your registered mobile number to access your dashboard";
+    btn.className = 'cta-btn ' + selectedRole;
+    btn.disabled = true;
+  }
+
+  // ---- BACK BUTTON (context aware) ----
+  backBtn.addEventListener('click', ()=>{
+    if(panelLogin.classList.contains('active')){
+      showPanel(panelRole);
+      setTopbarChrome({showBack:false, showSkip:false});
+    } else if(panelOtp.classList.contains('active')){
+      showPanel(panelLogin);
+      setTopbarChrome({showBack:true, showSkip:false});
+    }
+  });
+
+  // ---- PHONE LOGIN ----
+  const phoneInput = document.getElementById('phone-input');
+  const sendOtpBtn = document.getElementById('send-otp-btn');
+  phoneInput.addEventListener('input', ()=>{
+    phoneInput.value = phoneInput.value.replace(/\D/g,'');
+    sendOtpBtn.disabled = phoneInput.value.length !== 10;
+  });
+  sendOtpBtn.addEventListener('click', ()=>{
+    if(phoneInput.value.length !== 10) return;
+    const formatted = phoneInput.value.slice(0,5) + ' ' + phoneInput.value.slice(5);
+    document.getElementById('otp-phone-display').textContent = '+91 ' + formatted;
+    document.getElementById('otp-icon-wrap').className = 'login-icon-wrap ' + selectedRole;
+    document.getElementById('verify-btn').className = 'cta-btn ' + selectedRole;
+    showPanel(panelOtp);
+    setTopbarChrome({showBack:true, showSkip:false});
+    setTimeout(()=>document.querySelector('.otp-box').focus(), 50);
+  });
+
+  // ---- OTP BOXES auto-advance ----
+  const otpBoxes = document.querySelectorAll('.otp-box');
+  otpBoxes.forEach((box, idx)=>{
+    box.addEventListener('input', ()=>{
+      box.value = box.value.replace(/\D/g,'');
+      if(box.value && idx < otpBoxes.length - 1) otpBoxes[idx+1].focus();
+    });
+    box.addEventListener('keydown', (e)=>{
+      if(e.key === 'Backspace' && !box.value && idx > 0) otpBoxes[idx-1].focus();
+    });
+  });
+
+  document.getElementById('change-number-btn').addEventListener('click', ()=>{
+    showPanel(panelLogin);
+    setTopbarChrome({showBack:true, showSkip:false});
+  });
+
+  document.getElementById('verify-btn').addEventListener('click', ()=>{
+    const code = Array.from(otpBoxes).map(b=>b.value).join('');
+    if(code.length !== 4){
+      otpBoxes.forEach(b=>{ b.style.borderColor = '#ef9a9a'; });
+      setTimeout(()=>otpBoxes.forEach(b=>{ b.style.borderColor = '#dde8f0'; }), 600);
+      return;
+    }
+    if(selectedRole === 'patient'){
+      sendPrompt('Take me to the Patient Home screen');
+    } else {
+      sendPrompt('Take me to the Doctor Dashboard screen');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

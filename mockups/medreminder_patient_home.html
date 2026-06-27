@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - patient home</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+.status{background:#0d4f6e;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0d4f6e;padding:14px 18px 16px;}
+.topbar-row{display:flex;justify-content:space-between;align-items:center;}
+.greeting{color:#a8d8ea;font-size:12px;font-weight:400;margin-bottom:2px;}
+.patient-name{color:#fff;font-size:19px;font-weight:600;}
+.notif-btn{background:rgba(255,255,255,0.15);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;}
+.date-strip{background:#0b3f58;padding:10px 18px;}
+.date-label{color:#a8d8ea;font-size:11px;margin-bottom:6px;font-weight:500;letter-spacing:0.04em;}
+.week-row{display:flex;gap:4px;}
+.day-chip{flex:1;text-align:center;padding:6px 2px;border-radius:10px;cursor:pointer;}
+.day-chip .dn{font-size:10px;color:#7aacbf;font-weight:500;margin-bottom:3px;}
+.day-chip .dd{font-size:14px;color:#c5dde8;font-weight:500;}
+.day-chip.active{background:#1a8fb4;}
+.day-chip.active .dn{color:#cceeff;}
+.day-chip.active .dd{color:#fff;font-weight:700;}
+.scroll-area{padding:14px 14px 80px;overflow-y:auto;max-height:420px;}
+.section-label{font-size:11px;font-weight:600;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;margin-top:4px;}
+.med-card{background:#fff;border-radius:14px;padding:13px 14px;margin-bottom:10px;border:0.5px solid #dde8f0;}
+.med-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.med-icon{width:36px;height:36px;border-radius:10px;background:#e6f4f9;display:flex;align-items:center;justify-content:center;font-size:18px;color:#0d6e8e;flex-shrink:0;}
+.med-info{flex:1;}
+.med-name{font-size:15px;font-weight:600;color:#0d2d3d;}
+.med-dose{font-size:12px;color:#7090a0;margin-top:1px;}
+.taken-btn{border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.taken-btn.pending{background:#e8f5e9;color:#2e7d32;}
+.taken-btn.done{background:#2e7d32;color:#fff;}
+.med-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{font-size:11px;border-radius:20px;padding:3px 9px;font-weight:500;}
+.pill-blue{background:#e3f0f8;color:#0c5070;}
+.pill-amber{background:#fff3e0;color:#7a4d00;}
+.pill-green{background:#e8f5e9;color:#1b5e20;}
+.pill-red{background:#fdecea;color:#b71c1c;}
+.divider{height:0.5px;background:#dde8f0;margin:12px 0;}
+.streak-card{background:#0d4f6e;border-radius:14px;padding:13px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.streak-icon{font-size:22px;color:#ffd54f;}
+.streak-text{color:#fff;}
+.streak-num{font-size:20px;font-weight:700;color:#fff;}
+.streak-sub{font-size:11px;color:#a8d8ea;margin-top:1px;}
+.streak-right{margin-left:auto;text-align:right;}
+.streak-pct{font-size:18px;font-weight:700;color:#4dd0e1;}
+.streak-pct-label{font-size:10px;color:#7fb8c8;}
+.bottom-nav{background:#fff;border-top:0.5px solid #dde8f0;display:flex;padding:8px 0 10px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0;}
+.nav-item i{font-size:20px;color:#9ab5c0;}
+.nav-item span{font-size:10px;color:#9ab5c0;font-weight:500;}
+.nav-item.active i{color:#0d4f6e;}
+.nav-item.active span{color:#0d4f6e;font-weight:700;}
+.add-fab{position:absolute;bottom:62px;right:14px;background:#0d4f6e;color:#fff;border:none;border-radius:14px;padding:10px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(13,79,110,0.25);}
+.frame{position:relative;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div>
+        <div class="greeting">Good morning,</div>
+        <div class="patient-name">Rajesh Kumar</div>
+      </div>
+      <button class="notif-btn" aria-label="Notifications">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="date-strip">
+    <div class="date-label">Today, 27 Jun 2026</div>
+    <div class="week-row">
+      <div class="day-chip"><div class="dn">Mon</div><div class="dd">23</div></div>
+      <div class="day-chip"><div class="dn">Tue</div><div class="dd">24</div></div>
+      <div class="day-chip"><div class="dn">Wed</div><div class="dd">25</div></div>
+      <div class="day-chip"><div class="dn">Thu</div><div class="dd">26</div></div>
+      <div class="day-chip active"><div class="dn">Fri</div><div class="dd">27</div></div>
+      <div class="day-chip"><div class="dn">Sat</div><div class="dd">28</div></div>
+      <div class="day-chip"><div class="dn">Sun</div><div class="dd">29</div></div>
+    </div>
+  </div>
+
+  <div class="scroll-area" style="position:relative;">
+
+    <div class="streak-card">
+      <i class="ti ti-flame" style="font-size:24px;color:#ffd54f" aria-hidden="true"></i>
+      <div class="streak-text">
+        <div class="streak-num">Day 12</div>
+        <div class="streak-sub">Current streak</div>
+      </div>
+      <div class="streak-right">
+        <div class="streak-pct">94%</div>
+        <div class="streak-pct-label">This month</div>
+      </div>
+    </div>
+
+    <div class="section-label">Morning</div>
+
+    <div class="med-card">
+      <div class="med-card-top">
+        <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div class="med-info">
+          <div class="med-name">Metformin</div>
+          <div class="med-dose">500mg · After food</div>
+        </div>
+        <button class="taken-btn done" aria-label="Marked as taken">
+          <i class="ti ti-check" style="font-size:11px"></i> Taken
+        </button>
+      </div>
+      <div class="med-meta">
+        <span class="pill pill-blue"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px"></i> 8:00 AM</span>
+        <span class="pill pill-green">After food</span>
+        <span class="pill pill-amber">Twice daily</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:14px;">Afternoon</div>
+
+    <div class="med-card">
+      <div class="med-card-top">
+        <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div class="med-info">
+          <div class="med-name">Metformin</div>
+          <div class="med-dose">500mg · After food</div>
+        </div>
+        <button class="taken-btn pending" onclick="this.className='taken-btn done';this.innerHTML='<i class=\'ti ti-check\' style=\'font-size:11px\'></i> Taken'" aria-label="Mark as taken">
+          Mark taken
+        </button>
+      </div>
+      <div class="med-meta">
+        <span class="pill pill-blue"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px"></i> 2:00 PM</span>
+        <span class="pill pill-green">After food</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:14px;">Night</div>
+
+    <div class="med-card">
+      <div class="med-card-top">
+        <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div class="med-info">
+          <div class="med-name">Amlodipine</div>
+          <div class="med-dose">5mg · Before food</div>
+        </div>
+        <button class="taken-btn pending" onclick="this.className='taken-btn done';this.innerHTML='<i class=\'ti ti-check\' style=\'font-size:11px\'></i> Taken'" aria-label="Mark as taken">
+          Mark taken
+        </button>
+      </div>
+      <div class="med-meta">
+        <span class="pill pill-blue"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px"></i> 9:00 PM</span>
+        <span class="pill pill-red">Before food</span>
+        <span class="pill pill-amber">Once daily</span>
+      </div>
+    </div>
+
+    <div class="med-card">
+      <div class="med-card-top">
+        <div class="med-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div class="med-info">
+          <div class="med-name">Atorvastatin</div>
+          <div class="med-dose">10mg · After food</div>
+        </div>
+        <button class="taken-btn pending" onclick="this.className='taken-btn done';this.innerHTML='<i class=\'ti ti-check\' style=\'font-size:11px\'></i> Taken'" aria-label="Mark as taken">
+          Mark taken
+        </button>
+      </div>
+      <div class="med-meta">
+        <span class="pill pill-blue"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px"></i> 9:00 PM</span>
+        <span class="pill pill-green">After food</span>
+        <span class="pill pill-amber">Once daily</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active" aria-label="Home">
+      <i class="ti ti-home" aria-hidden="true"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" aria-label="Medicines" onclick="sendPrompt('Build the Medicines list screen next')">
+      <i class="ti ti-pill" aria-hidden="true"></i>
+      <span>Medicines</span>
+    </button>
+    <button class="nav-item" aria-label="Progress" onclick="sendPrompt('Build the Progress calendar screen next')">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <span>Progress</span>
+    </button>
+    <button class="nav-item" aria-label="Profile">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <span>Profile</span>
+    </button>
+  </div>
+</div>
+</div>
+</body>
+</html>

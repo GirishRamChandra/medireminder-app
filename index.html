@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder — Screen Index</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f7fb;padding:40px 20px;}
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{color:#0b2a38;font-size:26px;margin-bottom:6px;}
+  p.sub{color:#7090a0;font-size:14px;margin-bottom:30px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+  a.card{display:block;background:#fff;border:1px solid #dde8f0;border-radius:14px;padding:18px;text-decoration:none;transition:all .15s;}
+  a.card:hover{border-color:#0d6e8e;box-shadow:0 4px 14px rgba(13,79,110,0.08);}
+  .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:3px 9px;border-radius:20px;margin-bottom:8px;}
+  .tag.patient{background:#e3f0f8;color:#0c5070;}
+  .tag.doctor{background:#eaf2ff;color:#0b3a52;}
+  .tag.shared{background:#f3f4f6;color:#4b5563;}
+  .card-title{font-size:15px;font-weight:700;color:#0b2a38;margin-bottom:4px;}
+  .card-desc{font-size:12.5px;color:#7090a0;line-height:1.5;}
+  .missing{background:#fff8e1;border:1px dashed #f57f17;}
+  .missing .card-title{color:#7a4d00;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MediReminder — Screen Mockups</h1>
+  <p class="sub">Click any screen to open it. These are static HTML/CSS/JS design mockups, not the live React app yet.</p>
+  <div class="grid">
+
+    <a class="card" href="mockups/medreminder_login_onboarding.html">
+      <span class="tag shared">Shared</span>
+      <div class="card-title">Login / Onboarding</div>
+      <div class="card-desc">Onboarding slides, role select, phone login, OTP verify</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_patient_home.html">
+      <span class="tag patient">Patient</span>
+      <div class="card-title">Patient Home</div>
+      <div class="card-desc">Today's medicines by time of day, streak card</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_patient_progress.html">
+      <span class="tag patient">Patient</span>
+      <div class="card-title">Patient Progress</div>
+      <div class="card-desc">Adherence calendar + per-medicine breakdown</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_doctor_dashboard.html">
+      <span class="tag doctor">Doctor</span>
+      <div class="card-title">Doctor Dashboard</div>
+      <div class="card-desc">Patient list grouped by risk level</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_doctor_patient_view.html">
+      <span class="tag doctor">Doctor</span>
+      <div class="card-title">Doctor → Patient Detail</div>
+      <div class="card-desc">Alerts, calendar, missed-dose patterns, trends</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_doctor_prescribe.html">
+      <span class="tag doctor">Doctor</span>
+      <div class="card-title">Prescribing Flow</div>
+      <div class="card-desc">Select patient → add medicines → review → send</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_medicine_entry_form.html">
+      <span class="tag patient">Patient</span>
+      <div class="card-title">Medicine Entry Form</div>
+      <div class="card-desc">Patient manually adds a medicine to their schedule</div>
+    </a>
+
+    <a class="card" href="mockups/medreminder_add_patient.html">
+      <span class="tag doctor">Doctor</span>
+      <div class="card-title">Add Patient Screen</div>
+      <div class="card-desc">Doctor creates a new patient profile</div>
+    </a>
+
+  </div>
+</div>
+</body>
+</html>

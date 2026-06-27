@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - medicine entry form</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;position:relative;}
+.status{background:#0d4f6e;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0d4f6e;padding:12px 16px 16px;}
+.topbar-row{display:flex;align-items:center;gap:10px;}
+.back-btn{background:rgba(255,255,255,0.15);border:none;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-sub{color:#a8d8ea;font-size:11px;font-weight:500;margin-bottom:1px;}
+.topbar-title{color:#fff;font-size:17px;font-weight:700;}
+
+.scroll-area{padding:16px 16px 90px;overflow-y:auto;max-height:480px;}
+.field-label{font-size:11px;font-weight:700;color:#5a7f90;margin-bottom:7px;margin-top:16px;letter-spacing:0.02em;}
+.field-label:first-child{margin-top:0;}
+.text-input{width:100%;border:1px solid #dde8f0;border-radius:10px;padding:11px 13px;font-size:14px;color:#0b2a38;background:#fff;}
+.text-input::placeholder{color:#aebfc8;}
+.icon-input-wrap{position:relative;}
+.icon-input-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9ab5c0;font-size:15px;}
+.icon-input-wrap .text-input{padding-left:36px;}
+
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;}
+.chip{border:1px solid #c8dde8;background:#fff;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;color:#5a7f90;cursor:pointer;}
+.chip.active{background:#0d4f6e;border-color:#0d4f6e;color:#fff;}
+
+.times-wrap{display:flex;flex-direction:column;gap:8px;}
+.time-input{display:flex;align-items:center;gap:8px;border:1px solid #dde8f0;border-radius:10px;padding:10px 12px;background:#fff;}
+.time-input i{color:#0d6e8e;font-size:15px;flex-shrink:0;}
+.time-input span{font-size:11px;color:#9ab5c0;font-weight:600;min-width:30px;}
+.time-input input{border:none;background:transparent;font-size:13px;color:#0b2a38;width:100%;}
+
+.toggle-row{display:flex;gap:8px;}
+.toggle-card{flex:1;border:1.5px solid #dde8f0;border-radius:11px;padding:12px 10px;text-align:center;cursor:pointer;background:#fff;}
+.toggle-card i{font-size:18px;color:#9ab5c0;display:block;margin-bottom:5px;}
+.toggle-card span{font-size:12px;font-weight:600;color:#7090a0;}
+.toggle-card.active{border-color:#0d4f6e;background:#eef6fa;}
+.toggle-card.active i{color:#0d4f6e;}
+.toggle-card.active span{color:#0d4f6e;}
+
+.reminder-card{background:#fff;border:0.5px solid #dde8f0;border-radius:12px;padding:12px 13px;margin-top:16px;display:flex;align-items:center;gap:10px;}
+.reminder-card i{color:#1a8fb4;font-size:18px;}
+.reminder-text{flex:1;font-size:11.5px;color:#7090a0;line-height:1.5;}
+.switch{width:38px;height:22px;border-radius:20px;background:#1a8fb4;position:relative;flex-shrink:0;cursor:pointer;}
+.switch::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;right:3px;transition:.15s;}
+.switch.off{background:#dde8f0;}
+.switch.off::after{right:auto;left:3px;}
+
+.save-bar{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #dde8f0;padding:12px 16px 14px;}
+.save-btn{width:100%;background:#0d4f6e;color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.save-btn:disabled{background:#b8c8d2;cursor:not-allowed;}
+
+.toast{position:absolute;top:90px;left:16px;right:16px;background:#0b2a38;color:#fff;border-radius:11px;padding:12px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(-10px);transition:all .25s;z-index:40;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast i{color:#7fffa0;font-size:16px;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <button class="back-btn" id="back-btn" aria-label="Back to home"><i class="ti ti-arrow-left"></i></button>
+      <div class="topbar-info">
+        <div class="topbar-sub">Patient Home</div>
+        <div class="topbar-title">Add Medicine</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <div class="field-label">Medicine name</div>
+    <div class="icon-input-wrap">
+      <i class="ti ti-pill" aria-hidden="true"></i>
+      <input class="text-input" id="med-name" placeholder="e.g. Metformin" />
+    </div>
+
+    <div class="field-label">Dosage</div>
+    <input class="text-input" id="med-dosage" placeholder="e.g. 500mg, 1 tablet" />
+
+    <div class="field-label">How often?</div>
+    <div class="chip-row" id="freq-row">
+      <div class="chip" data-val="1">Once daily</div>
+      <div class="chip" data-val="2">Twice daily</div>
+      <div class="chip" data-val="3">Thrice daily</div>
+    </div>
+
+    <div class="field-label">What time?</div>
+    <div class="times-wrap" id="times-wrap">
+      <div class="time-input">
+        <i class="ti ti-clock" aria-hidden="true"></i>
+        <span>1st</span>
+        <input type="time" value="08:00" id="time-1">
+      </div>
+    </div>
+
+    <div class="field-label">Before or after food?</div>
+    <div class="toggle-row">
+      <div class="toggle-card" id="toggle-before" data-val="Before food">
+        <i class="ti ti-clock-hour-4" aria-hidden="true"></i>
+        <span>Before food</span>
+      </div>
+      <div class="toggle-card" id="toggle-after" data-val="After food">
+        <i class="ti ti-soup" aria-hidden="true"></i>
+        <span>After food</span>
+      </div>
+    </div>
+
+    <div class="reminder-card">
+      <i class="ti ti-bell-ringing" aria-hidden="true"></i>
+      <div class="reminder-text">Send me reminder notifications for this medicine</div>
+      <div class="switch" id="reminder-switch"></div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">
+    <i class="ti ti-check" aria-hidden="true"></i>
+    <span>Medicine added to your schedule</span>
+  </div>
+
+  <div class="save-bar">
+    <button class="save-btn" id="save-btn" disabled>
+      <i class="ti ti-device-floppy" style="font-size:15px"></i> Save Medicine
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  let selectedFreq = 1;
+  let selectedFood = null;
+  let reminderOn = true;
+
+  const nameInput = document.getElementById('med-name');
+  const dosageInput = document.getElementById('med-dosage');
+  const saveBtn = document.getElementById('save-btn');
+  const timesWrap = document.getElementById('times-wrap');
+
+  function checkFormValid(){
+    const valid = nameInput.value.trim() && dosageInput.value.trim() && selectedFood;
+    saveBtn.disabled = !valid;
+  }
+  nameInput.addEventListener('input', checkFormValid);
+  dosageInput.addEventListener('input', checkFormValid);
+
+  // default first frequency chip active
+  document.querySelector('#freq-row .chip[data-val="1"]').classList.add('active');
+
+  document.querySelectorAll('#freq-row .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#freq-row .chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedFreq = Number(chip.dataset.val);
+      renderTimeInputs(selectedFreq);
+    });
+  });
+
+  function renderTimeInputs(count){
+    const labels = ['1st','2nd','3rd'];
+    const defaults = ['08:00','14:00','21:00'];
+    timesWrap.innerHTML = '';
+    for(let i=0;i<count;i++){
+      const row = document.createElement('div');
+      row.className = 'time-input';
+      row.innerHTML = '<i class="ti ti-clock" aria-hidden="true"></i><span>'+labels[i]+'</span><input type="time" value="'+defaults[i]+'" id="time-'+(i+1)+'">';
+      timesWrap.appendChild(row);
+    }
+  }
+
+  document.getElementById('toggle-before').addEventListener('click', ()=>{
+    document.getElementById('toggle-before').classList.add('active');
+    document.getElementById('toggle-after').classList.remove('active');
+    selectedFood = 'Before food';
+    checkFormValid();
+  });
+  document.getElementById('toggle-after').addEventListener('click', ()=>{
+    document.getElementById('toggle-after').classList.add('active');
+    document.getElementById('toggle-before').classList.remove('active');
+    selectedFood = 'After food';
+    checkFormValid();
+  });
+
+  const switchEl = document.getElementById('reminder-switch');
+  switchEl.addEventListener('click', ()=>{
+    reminderOn = !reminderOn;
+    switchEl.classList.toggle('off', !reminderOn);
+  });
+
+  document.getElementById('back-btn').addEventListener('click', ()=>{
+    sendPrompt('Take me back to Patient Home');
+  });
+
+  saveBtn.addEventListener('click', ()=>{
+    if(saveBtn.disabled) return;
+    const toast = document.getElementById('toast');
+    const name = nameInput.value.trim();
+    toast.querySelector('span').textContent = name + ' added to your schedule';
+    toast.classList.add('show');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="ti ti-check" style="font-size:15px"></i> Saved!';
+    setTimeout(()=>{
+      sendPrompt('Take me back to Patient Home');
+    }, 1100);
+  });
+})();
+</script>
+</body>
+</html>

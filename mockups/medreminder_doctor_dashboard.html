@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - doctor dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+.status{background:#0b3a52;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0b3a52;padding:12px 16px 16px;}
+.doctor-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.doctor-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
+.doctor-info{flex:1;}
+.doctor-greeting{color:#a8c8d8;font-size:11px;}
+.doctor-name{color:#fff;font-size:15px;font-weight:700;}
+.notif-btn{background:rgba(255,255,255,0.15);border:none;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:17px;position:relative;}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:#ef5350;border-radius:50%;border:1.5px solid #0b3a52;}
+.search-bar{background:rgba(255,255,255,0.12);border:none;border-radius:10px;padding:9px 12px;width:100%;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px;}
+.search-bar i{color:#a8c8d8;font-size:16px;}
+.search-bar span{color:#7aacbf;font-size:13px;}
+.summary-strip{background:#0d4f6e;padding:10px 14px;display:flex;gap:0;}
+.sum-item{flex:1;text-align:center;border-right:0.5px solid rgba(255,255,255,0.1);}
+.sum-item:last-child{border-right:none;}
+.sum-num{font-size:17px;font-weight:700;color:#fff;}
+.sum-label{font-size:9px;color:#a8c8d8;font-weight:500;margin-top:1px;text-transform:uppercase;letter-spacing:0.04em;}
+.sum-num.red{color:#ef9a9a;}
+.sum-num.amber{color:#ffe082;}
+.sum-num.green{color:#a5d6a7;}
+.scroll-area{padding:13px 13px 80px;overflow-y:auto;max-height:440px;}
+.filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;}
+.filter-chip{border:1px solid #c8dde8;background:#fff;border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;color:#5a7f90;white-space:nowrap;cursor:pointer;}
+.filter-chip.active{background:#0b3a52;border-color:#0b3a52;color:#fff;}
+.section-label{font-size:10px;font-weight:700;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;}
+.patient-card{background:#fff;border-radius:13px;padding:12px 13px;margin-bottom:9px;border:0.5px solid #dde8f0;cursor:pointer;}
+.patient-card.flagged{border-left:3px solid #c62828;border-radius:0 13px 13px 0;}
+.patient-card.warning{border-left:3px solid #f57f17;border-radius:0 13px 13px 0;}
+.patient-card.good{border-left:3px solid #2e7d32;border-radius:0 13px 13px 0;}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.p-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.p-info{flex:1;}
+.p-name{font-size:14px;font-weight:700;color:#0b2a38;}
+.p-meta{font-size:11px;color:#7090a0;margin-top:1px;}
+.risk-badge{font-size:10px;font-weight:700;border-radius:7px;padding:4px 9px;}
+.card-stats{display:flex;gap:6px;align-items:center;}
+.adh-bar-wrap{flex:1;background:#eef2f5;border-radius:20px;height:5px;overflow:hidden;}
+.adh-bar{height:100%;border-radius:20px;}
+.adh-pct{font-size:12px;font-weight:700;min-width:32px;text-align:right;}
+.card-bottom{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.info-pill{font-size:10px;border-radius:6px;padding:3px 8px;font-weight:500;display:flex;align-items:center;gap:3px;}
+.divider-label{font-size:10px;font-weight:700;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin:14px 0 8px;}
+.add-btn{width:100%;background:#0b3a52;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:4px;}
+.bottom-nav{background:#fff;border-top:0.5px solid #dde8f0;display:flex;padding:8px 0 10px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0;}
+.nav-item i{font-size:20px;color:#9ab5c0;}
+.nav-item span{font-size:10px;color:#9ab5c0;font-weight:500;}
+.nav-item.active i{color:#0b3a52;}
+.nav-item.active span{color:#0b3a52;font-weight:700;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="doctor-row">
+      <div class="doctor-avatar">DR</div>
+      <div class="doctor-info">
+        <div class="doctor-greeting">Good morning,</div>
+        <div class="doctor-name">Dr. Ramesh Iyer</div>
+      </div>
+      <button class="notif-btn" aria-label="Notifications">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+        <div class="notif-dot"></div>
+      </button>
+    </div>
+    <div class="search-bar">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <span>Search patients...</span>
+    </div>
+  </div>
+
+  <div class="summary-strip">
+    <div class="sum-item">
+      <div class="sum-num">18</div>
+      <div class="sum-label">Total patients</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-num red">3</div>
+      <div class="sum-label">Critical</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-num amber">5</div>
+      <div class="sum-label">At risk</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-num green">10</div>
+      <div class="sum-label">On track</div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <div class="filter-row">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Critical</div>
+      <div class="filter-chip">At risk</div>
+      <div class="filter-chip">On track</div>
+      <div class="filter-chip">Flagged</div>
+    </div>
+
+    <div class="section-label">Critical — needs attention</div>
+
+    <div class="patient-card flagged">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#fdecea;color:#b71c1c;">RK</div>
+        <div class="p-info">
+          <div class="p-name">Rajesh Kumar</div>
+          <div class="p-meta">68 yrs · Diabetes, Hypertension</div>
+        </div>
+        <div class="risk-badge" style="background:#fdecea;color:#b71c1c;">Critical</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:71%;background:#c62828;"></div>
+        </div>
+        <div class="adh-pct" style="color:#c62828;">71%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#fdecea;color:#b71c1c;"><i class="ti ti-alert-triangle" style="font-size:10px"></i> Missed 3 days in a row</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">3 medicines</div>
+      </div>
+    </div>
+
+    <div class="patient-card flagged">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#fdecea;color:#b71c1c;">SK</div>
+        <div class="p-info">
+          <div class="p-name">Suresh Krishnan</div>
+          <div class="p-meta">74 yrs · Heart disease</div>
+        </div>
+        <div class="risk-badge" style="background:#fdecea;color:#b71c1c;">Critical</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:58%;background:#c62828;"></div>
+        </div>
+        <div class="adh-pct" style="color:#c62828;">58%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#fdecea;color:#b71c1c;"><i class="ti ti-alert-triangle" style="font-size:10px"></i> Below 60% this week</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">5 medicines</div>
+      </div>
+    </div>
+
+    <div class="divider-label">At risk</div>
+
+    <div class="patient-card warning">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#fff8e1;color:#e65100;">MS</div>
+        <div class="p-info">
+          <div class="p-name">Meena Sharma</div>
+          <div class="p-meta">61 yrs · Thyroid, BP</div>
+        </div>
+        <div class="risk-badge" style="background:#fff8e1;color:#e65100;">At risk</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:79%;background:#f57f17;"></div>
+        </div>
+        <div class="adh-pct" style="color:#f57f17;">79%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#fff8e1;color:#7a4d00;"><i class="ti ti-moon" style="font-size:10px"></i> Skips night doses</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">2 medicines</div>
+      </div>
+    </div>
+
+    <div class="patient-card warning">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#fff8e1;color:#e65100;">AP</div>
+        <div class="p-info">
+          <div class="p-name">Anita Patel</div>
+          <div class="p-meta">55 yrs · Diabetes</div>
+        </div>
+        <div class="risk-badge" style="background:#fff8e1;color:#e65100;">At risk</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:82%;background:#f57f17;"></div>
+        </div>
+        <div class="adh-pct" style="color:#f57f17;">82%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#fff8e1;color:#7a4d00;"><i class="ti ti-calendar-week" style="font-size:10px"></i> Weekend drops</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">4 medicines</div>
+      </div>
+    </div>
+
+    <div class="divider-label">On track</div>
+
+    <div class="patient-card good">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#e8f5e9;color:#1b5e20;">VR</div>
+        <div class="p-info">
+          <div class="p-name">Vijay Rao</div>
+          <div class="p-meta">59 yrs · Hypertension</div>
+        </div>
+        <div class="risk-badge" style="background:#e8f5e9;color:#1b5e20;">On track</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:96%;background:#2e7d32;"></div>
+        </div>
+        <div class="adh-pct" style="color:#2e7d32;">96%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#e8f5e9;color:#1b5e20;"><i class="ti ti-flame" style="font-size:10px"></i> 21 day streak</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">2 medicines</div>
+      </div>
+    </div>
+
+    <div class="patient-card good">
+      <div class="card-top">
+        <div class="p-avatar" style="background:#e8f5e9;color:#1b5e20;">LN</div>
+        <div class="p-info">
+          <div class="p-name">Lakshmi Nair</div>
+          <div class="p-meta">63 yrs · Cholesterol</div>
+        </div>
+        <div class="risk-badge" style="background:#e8f5e9;color:#1b5e20;">On track</div>
+      </div>
+      <div class="card-stats">
+        <div style="font-size:10px;color:#7090a0;min-width:52px;">Adherence</div>
+        <div class="adh-bar-wrap">
+          <div class="adh-bar" style="width:91%;background:#2e7d32;"></div>
+        </div>
+        <div class="adh-pct" style="color:#2e7d32;">91%</div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-pill" style="background:#e8f5e9;color:#1b5e20;"><i class="ti ti-check" style="font-size:10px"></i> No misses this week</div>
+        <div class="info-pill" style="background:#f3f4f6;color:#4b5563;">1 medicine</div>
+      </div>
+    </div>
+
+    <button class="add-btn">
+      <i class="ti ti-user-plus" style="font-size:16px"></i> Add new patient
+    </button>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active" aria-label="Patients">
+      <i class="ti ti-users" aria-hidden="true"></i>
+      <span>Patients</span>
+    </button>
+    <button class="nav-item" aria-label="Prescribe" onclick="sendPrompt('Build Screen 5 — Doctor prescribing flow next')">
+      <i class="ti ti-prescription" aria-hidden="true"></i>
+      <span>Prescribe</span>
+    </button>
+    <button class="nav-item" aria-label="Reports">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <span>Reports</span>
+    </button>
+    <button class="nav-item" aria-label="Profile">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <span>Profile</span>
+    </button>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediReminder - patient progress</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>body{background:#e9edf2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}</style>
+<script>
+// sendPrompt() is provided by the Claude chat environment for screen-to-screen navigation.
+// This fallback prevents errors when viewing the file standalone in a browser.
+if (typeof sendPrompt === 'undefined') {
+  function sendPrompt(text) { console.log('[Navigation requested]:', text); alert('Next screen: ' + text); }
+}
+</script>
+</head>
+<body>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.phone{width:320px;margin:0 auto;background:#f4f7fb;border-radius:36px;border:8px solid #1a2a3a;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+.status{background:#0d4f6e;padding:10px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.status-time{color:#fff;font-size:13px;font-weight:600;}
+.status-icons{color:#fff;font-size:11px;display:flex;gap:6px;align-items:center;}
+.topbar{background:#0d4f6e;padding:14px 18px 16px;}
+.topbar-row{display:flex;justify-content:space-between;align-items:center;}
+.topbar-title{color:#fff;font-size:19px;font-weight:600;}
+.month-nav{display:flex;align-items:center;gap:10px;}
+.month-btn{background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:15px;}
+.month-label{color:#fff;font-size:14px;font-weight:600;min-width:80px;text-align:center;}
+.scroll-area{padding:14px 14px 80px;overflow-y:auto;max-height:460px;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-card{background:#fff;border-radius:12px;padding:10px 10px;border:0.5px solid #dde8f0;text-align:center;}
+.stat-num{font-size:20px;font-weight:700;color:#0d4f6e;}
+.stat-label{font-size:10px;color:#7090a0;margin-top:2px;font-weight:500;}
+.stat-card.green .stat-num{color:#2e7d32;}
+.stat-card.red .stat-num{color:#c62828;}
+.section-label{font-size:11px;font-weight:600;color:#5a7f90;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;}
+.calendar-card{background:#fff;border-radius:14px;padding:14px;border:0.5px solid #dde8f0;margin-bottom:12px;}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px;}
+.cal-day-name{text-align:center;font-size:10px;font-weight:600;color:#9ab5c0;padding:2px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;}
+.cal-cell.taken{background:#e8f5e9;color:#2e7d32;}
+.cal-cell.missed{background:#fdecea;color:#c62828;}
+.cal-cell.partial{background:#fff8e1;color:#f57f17;}
+.cal-cell.future{background:#f0f4f8;color:#b0c4cc;}
+.cal-cell.today{border:2px solid #0d4f6e;color:#0d4f6e;background:#e3f2fd;}
+.cal-cell.empty{background:transparent;}
+.legend{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#7090a0;font-weight:500;}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
+.med-breakdown{background:#fff;border-radius:14px;padding:14px;border:0.5px solid #dde8f0;margin-bottom:12px;}
+.med-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #eef2f5;}
+.med-row:last-child{border-bottom:none;padding-bottom:0;}
+.med-row-icon{width:30px;height:30px;border-radius:8px;background:#e6f4f9;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0d6e8e;flex-shrink:0;}
+.med-row-name{font-size:13px;font-weight:600;color:#0d2d3d;flex:1;}
+.med-row-dose{font-size:11px;color:#7090a0;}
+.progress-bar-wrap{width:80px;background:#eef2f5;border-radius:20px;height:6px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:20px;}
+.pct-label{font-size:11px;font-weight:700;min-width:28px;text-align:right;}
+.bottom-nav{background:#fff;border-top:0.5px solid #dde8f0;display:flex;padding:8px 0 10px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0;}
+.nav-item i{font-size:20px;color:#9ab5c0;}
+.nav-item span{font-size:10px;color:#9ab5c0;font-weight:500;}
+.nav-item.active i{color:#0d4f6e;}
+.nav-item.active span{color:#0d4f6e;font-weight:700;}
+</style>
+
+<div style="padding:16px 0;display:flex;justify-content:center;">
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <span class="status-icons">
+      <i class="ti ti-wifi" style="font-size:13px"></i>
+      <i class="ti ti-battery-2" style="font-size:13px"></i>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="topbar-title">Progress</div>
+      <div class="month-nav">
+        <button class="month-btn" aria-label="Previous month"><i class="ti ti-chevron-left"></i></button>
+        <span class="month-label" id="month-label">June 2026</span>
+        <button class="month-btn" aria-label="Next month"><i class="ti ti-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <div class="stats-row">
+      <div class="stat-card green">
+        <div class="stat-num">22</div>
+        <div class="stat-label">Days taken</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-num">3</div>
+        <div class="stat-label">Days missed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:#0d4f6e;">88%</div>
+        <div class="stat-label">Adherence</div>
+      </div>
+    </div>
+
+    <div class="section-label">June 2026</div>
+
+    <div class="calendar-card">
+      <div class="cal-header">
+        <div class="cal-day-name">S</div>
+        <div class="cal-day-name">M</div>
+        <div class="cal-day-name">T</div>
+        <div class="cal-day-name">W</div>
+        <div class="cal-day-name">T</div>
+        <div class="cal-day-name">F</div>
+        <div class="cal-day-name">S</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9;border:1px solid #2e7d32;"></div> Taken</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fdecea;border:1px solid #c62828;"></div> Missed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fff8e1;border:1px solid #f57f17;"></div> Partial</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e3f2fd;border:2px solid #0d4f6e;"></div> Today</div>
+      </div>
+    </div>
+
+    <div class="section-label">Medicine breakdown</div>
+
+    <div class="med-breakdown">
+      <div class="med-row">
+        <div class="med-row-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div style="flex:1;">
+          <div class="med-row-name">Metformin</div>
+          <div class="med-row-dose">500mg · Twice daily</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:94%;background:#2e7d32;"></div>
+        </div>
+        <div class="pct-label" style="color:#2e7d32;">94%</div>
+      </div>
+      <div class="med-row">
+        <div class="med-row-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div style="flex:1;">
+          <div class="med-row-name">Amlodipine</div>
+          <div class="med-row-dose">5mg · Once daily</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:85%;background:#f57f17;"></div>
+        </div>
+        <div class="pct-label" style="color:#f57f17;">85%</div>
+      </div>
+      <div class="med-row">
+        <div class="med-row-icon"><i class="ti ti-pill" aria-hidden="true"></i></div>
+        <div style="flex:1;">
+          <div class="med-row-name">Atorvastatin</div>
+          <div class="med-row-dose">10mg · Once daily</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:78%;background:#c62828;"></div>
+        </div>
+        <div class="pct-label" style="color:#c62828;">78%</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item" aria-label="Home">
+      <i class="ti ti-home" aria-hidden="true"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" aria-label="Medicines">
+      <i class="ti ti-pill" aria-hidden="true"></i>
+      <span>Medicines</span>
+    </button>
+    <button class="nav-item active" aria-label="Progress">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <span>Progress</span>
+    </button>
+    <button class="nav-item" aria-label="Profile">
+      <i class="ti ti-user" aria-hidden="true"></i>
+      <span>Profile</span>
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+const data = [
+  '',  '', 'taken','taken','taken','taken','taken',
+  'taken','taken','missed','taken','taken','partial','taken',
+  'taken','missed','taken','taken','taken','partial','taken',
+  'taken','taken','taken','missed','taken','today','future',
+  'future','future',
+];
+
+const grid = document.getElementById('cal-grid');
+const startOffset = 0;
+for(let i=0;i<startOffset;i++){
+  const e=document.createElement('div');
+  e.className='cal-cell empty';
+  grid.appendChild(e);
+}
+data.forEach((type,i)=>{
+  const cell=document.createElement('div');
+  const day=i+1;
+  if(type===''){
+    cell.className='cal-cell empty';
+  } else {
+    cell.className='cal-cell '+type;
+    cell.textContent=day;
+  }
+  grid.appendChild(cell);
+});
+</script>
+</body>
+</html>
