@@ -1,5 +1,24 @@
 {
   "dependencies": {
     "firebase": "^12.15.0"
-  }
+  },
+  "name": "medireminder-app",
+  "version": "1.0.0",
+  "description": "A medication reminder app concept with two modes — **Patient Mode** and **Doctor Mode**. This repo currently contains **high-fidelity HTML/CSS/JS mockups** of the core screens, used as the design reference before building the real React app.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GirishRamChandra/medireminder-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GirishRamChandra/medireminder-app/issues"
+  },
+  "homepage": "https://github.com/GirishRamChandra/medireminder-app#readme"
 }

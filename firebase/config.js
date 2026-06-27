@@ -9,12 +9,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId:             "YOUR_APP_ID",
+apiKey: "AIzaSyDRcb2APeXe-cwehFp6f9HDhttTp8VA92I",
+authDomain: "medi-remind-66ee6.firebaseapp.com",
+projectId: "medi-remind-66ee6",
+storageBucket: "medi-remind-66ee6.firebasestorage.app",
+messagingSenderId: "542638283118",
+appId: "1:542638283118:web:64ee1dffcbdc39b8d5c97f"
 };
 
 const app  = initializeApp(firebaseConfig);
