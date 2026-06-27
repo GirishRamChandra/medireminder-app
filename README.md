@@ -32,5 +32,4 @@ All screens from the original spec are now built. Next milestone is converting t
 3. Replace dummy data with live data
 4. Connect the cross-screen flow so actions in one screen (e.g. saving a prescription) actually update state shown in another (e.g. patient home)
 
-## Continuation prompt
-`CONTINUATION_PROMPT.md` contains a ready-to-paste prompt + full design system spec for continuing this work in a new AI chat session if needed.
+
